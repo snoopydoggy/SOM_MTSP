@@ -1,6 +1,6 @@
 import numpy as np
 
-from distance import select_closest
+from distance import select_closest, select_closest_and_assign
 
 def generate_network(size):
     """
@@ -29,5 +29,21 @@ def get_route(cities, network):
     cities['winner'] = cities[['x', 'y']].apply(
         lambda c: select_closest(network, c),
         axis=1, raw=True)
+
+    return cities.sort_values('winner').index
+
+def get_route_m(cities, network, clusters):
+    cities_clusters = {}
+    cities['winner'] = cities[['x', 'y']].apply(
+        lambda c: select_closest_and_assign(network, c, clusters, cities_clusters),
+        axis=1, raw=True)
+
+    for city in cities_clusters.items():
+        city.sort_values('winner').index
+
+    total_route = 0
+    for city in cities_clusters.items():
+        total_route += ge
+        print()
 
     return cities.sort_values('winner').index

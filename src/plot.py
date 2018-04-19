@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import matplotlib as mpl
+import numpy as np
 
 def plot_network(cities, neurons, name='diagram.png', ax=None):
     """Plot a graphical representation of the problem"""
@@ -14,6 +15,33 @@ def plot_network(cities, neurons, name='diagram.png', ax=None):
 
         axis.scatter(cities['x'], cities['y'], color='red', s=4)
         axis.plot(neurons[:,0], neurons[:,1], 'r.', ls='-', color='#0063ba', markersize=2)
+
+        plt.savefig(name, bbox_inches='tight', pad_inches=0, dpi=200)
+        plt.close()
+
+    else:
+        ax.scatter(cities['x'], cities['y'], color='red', s=4)
+        ax.plot(neurons[:,0], neurons[:,1], 'r.', ls='-', color='#0063ba', markersize=2)
+        return ax
+
+def plot_network_m(cities, neurons_cluster, name='diagram.png', ax=None):
+    """Plot a graphical representation of the problem"""
+    mpl.rcParams['agg.path.chunksize'] = 10000
+
+    colors = ['#0063ba', '#ccff33', '#ff6699', '#660033', '#996633', '#99ff33', '#00ffff', '#006600']
+    i = 0
+    if not ax:
+        fig = plt.figure(figsize=(5, 5), frameon = False)
+        axis = fig.add_axes([0,0,1,1])
+
+        axis.set_aspect('equal', adjustable='datalim')
+        plt.axis('off')
+
+        axis.scatter(cities['x'], cities['y'], color='red', s=4)
+
+        for key, value in neurons_cluster.items():
+            axis.plot(np.asarray(value)[:,0], np.asarray(value)[:,1], 'r.', ls='-', color=colors[i], markersize=2)
+            i = i + 1
 
         plt.savefig(name, bbox_inches='tight', pad_inches=0, dpi=200)
         plt.close()
