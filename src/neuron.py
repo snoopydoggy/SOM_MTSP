@@ -1,6 +1,7 @@
 import numpy as np
 
-from distance import select_closest, select_closest_and_assign
+from distance import select_closest, select_closest_for_c
+from plot import plot_route_m
 
 def generate_network(size):
     """
@@ -33,17 +34,19 @@ def get_route(cities, network):
     return cities.sort_values('winner').index
 
 def get_route_m(cities, network, clusters):
-    cities_clusters = {}
-    cities['winner'] = cities[['x', 'y']].apply(
-        lambda c: select_closest_and_assign(network, c, clusters, cities_clusters),
+   cities['winner'] = cities[['x', 'y']].apply(
+        lambda c: select_closest_for_c(network, c),
         axis=1, raw=True)
 
-    for city in cities_clusters.items():
-        city.sort_values('winner').index
+   cities['cluster'] = cities[['winner']].apply(
+        lambda c: get_cluster_for_winner_idx(clusters, network[c]),
+        axis=1, raw=True)
 
-    total_route = 0
-    for city in cities_clusters.items():
-        total_route += ge
-        print()
+   plot_route_m(cities, 'C:/Users/Mateusz/PycharmProjects/som-tsp/tempdiagrams/route.png')
 
-    return cities.sort_values('winner').index
+
+def get_cluster_for_winner_idx(clusters, winner):
+    for key, value in clusters.items():
+        for neuron in value:
+            if np.array_equal(neuron, winner[0]):
+                return key

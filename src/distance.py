@@ -1,6 +1,5 @@
 import numpy as np
 
-from main import get_cluster_for_winner
 
 def select_closest(candidates, origin):
     """Return the index of the closest candidate to a given point."""
@@ -18,20 +17,15 @@ def select_closest_m(candidates, origin, network_inhibit):
             id = idx
     return id
 
-def select_closest_and_assign(network, c, clusters, cities_clusters):
+def select_closest_for_c(network, c):
     min = 100000
     winner_idx = -1
     for idx, neuron in enumerate(network):
-        if np.linalg.norm(neuron-origin) < min:
-            min = np.linalg.norm(neuron-origin)
+        if np.linalg.norm(neuron-c) < min:
+            min = np.linalg.norm(neuron-c)
             winner_idx = idx
 
-    for i in range(3):
-        cities_clusters[i] = []
-    winner = network[winner_idx]
-    cluster_id = get_cluster_for_winner(clusters, winner)
-    cities_clusters[cluster_id].append(c)
-    return id
+    return winner_idx
 
 def select_closest_for_cluster(candidates, origin):
     min = 100000
@@ -51,3 +45,9 @@ def route_distance(cities):
     points = cities[['x', 'y']]
     distances = euclidean_distance(points, np.roll(points, 1, axis=0))
     return np.sum(distances)
+
+def get_cluster_for_winner(clusters, winner):
+    for key, value in clusters.items():
+        for neuron in value:
+            if np.array_equal(neuron, winner):
+                return key

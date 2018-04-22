@@ -4,9 +4,9 @@ import numpy as np
 import math as math
 
 from io_helper import read_tsp, normalize
-from neuron import generate_network, get_neighborhood, get_route
+from neuron import get_route, get_route_m
 from distance import select_closest, euclidean_distance, route_distance, select_closest_m, select_closest_for_cluster
-from plot import plot_network, plot_route, plot_network_m
+from plot import plot_route, plot_network_m
 
 def main():
     if len(argv) != 2:
@@ -46,7 +46,9 @@ def som(problem, iterations):
     temp = 0
     depot = cities.loc[cities['city'] == 'depot']
     depot = depot[['x', 'y']].values[0]
-    for i in range(iterations):
+    plot_network_m(cities, clusters,
+               name='C:/Users/Mateusz/PycharmProjects/som-tsp/tempdiagrams/before.png')
+    for i in range(400):
 
         for cluster in clusters.items():
             winner = select_closest_for_cluster(cluster, depot)
@@ -68,26 +70,17 @@ def som(problem, iterations):
         network_inhibit = np.zeros((m,), dtype=bool)
 
         weight = weight * 0.9
-        n = n * 0.9997
 
-        if not i % 1000 or i < 100:
-            plot_network_m(cities, clusters, name='C:/Users/Mateusz/PycharmProjects/som-tsp/tempdiagrams/{:05d}.png'.format(i))
+        plot_network_m(cities, clusters, name='C:/Users/Mateusz/PycharmProjects/som-tsp/tempdiagrams/{:05d}.png'.format(i))
 
-        if n < 1:
-            print('Radius has completely decayed, finishing execution',
-            'at {} iterations'.format(i))
-            break
-        if learning_rate < 0.001:
-            print('Learning rate has completely decayed, finishing execution',
-            'at {} iterations'.format(i))
-            break
+
     else:
         print('Completed {} iterations.'.format(iterations))
 
     plot_network_m(cities, clusters, name='C:/Users/Mateusz/PycharmProjects/som-tsp/tempdiagrams/final.png')
 
     route = get_route(cities, network)
-    plot_route(cities, route, 'C:/Users/Mateusz/PycharmProjects/som-tsp/tempdiagrams//route.png')
+    get_route_m(cities, network, clusters)
     return route
 
 
@@ -117,26 +110,6 @@ def generateClusters_m(n, network, k=1):
             clusters[idx].append(network[n_i])
             currentArc += arc_per_neuron
             n_i += 1
-    return clusters
-
-def generateClusters(network, k=1):
-    r = 0.33
-    arc = 360/k
-    currentArc = 0
-    centers = []
-    clusters = {}
-
-    for i in range(k):
-        cix = 0.5 + r * math.cos(math.radians(currentArc))
-        ciy = 0.5 + r * math.sin(math.radians(currentArc))
-        centers.append([cix, ciy])
-        currentArc += arc
-        clusters[i] = []
-
-    for neuron in network:
-        index = select_closest(centers, neuron)
-        clusters[index].append(neuron)
-
     return clusters
 
 def get_cluster_for_winner(clusters, winner):
