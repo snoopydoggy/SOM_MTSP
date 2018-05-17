@@ -4,8 +4,7 @@ import numpy as np
 import math as math
 
 from io_helper import read_tsp, normalize
-from neuron import get_route_m
-from distance import euclidean_distance, route_distance, select_closest_m, select_closest_for_cluster
+from distance_helper import euclidean_distance, route_distance, select_closest_m, select_closest_for_cluster, get_route_m
 from plot import plot_route, plot_network_m
 
 def main():
@@ -33,7 +32,7 @@ def som(problem, tsps_number):
     temp = 0
     depot = cities.loc[cities['city'] == 'depot']
     depot = depot[['x', 'y']].values[0]
-    for i in range(20):
+    for i in range(3):
 
         for cluster in clusters.items():
             winner = select_closest_for_cluster(cluster, depot)
