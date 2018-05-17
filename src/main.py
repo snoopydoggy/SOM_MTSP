@@ -4,7 +4,7 @@ import numpy as np
 import math as math
 
 from io_helper import read_tsp, normalize
-from distance_helper import euclidean_distance, route_distance, select_closest_m, select_closest_for_cluster, get_route_m
+from neuron_helper import euclidean_distance, route_distance, select_closest_m, select_closest_for_cluster, get_route_m
 from plot import plot_route, plot_network_m
 
 def main():
