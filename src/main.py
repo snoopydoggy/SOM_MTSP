@@ -15,23 +15,18 @@ def main():
 
     problem = read_tsp(argv[1])
 
-    route = som(problem, 100000)
+    route = som(problem)
 
     problem = problem.reindex(route)
 
-    distance = route_distance(problem)
-
-    print('Route found of length {}'.format(distance))
-
-
-def som(problem, iterations):
+def som(problem):
     #att48.tsp depot: city = 21
     cities = problem.copy()
     cities[['x', 'y']] = normalize(cities[['x', 'y']])
     n = cities.shape[0] * 4
     m = n
     G = 0.4 * n
-    k = 3
+    k = 5
     alfa = 0.03
     learning_rate = 0.6
     weight = 0.3
@@ -46,23 +41,19 @@ def som(problem, iterations):
     temp = 0
     depot = cities.loc[cities['city'] == 'depot']
     depot = depot[['x', 'y']].values[0]
-    plot_network_m(cities, clusters,
-               name='C:/Users/Mateusz/PycharmProjects/som-tsp/tempdiagrams/before.png')
-    for i in range(400):
+    for i in range(160):
 
         for cluster in clusters.items():
             winner = select_closest_for_cluster(cluster, depot)
             update_network_inhibit_for_winner(winner, network, network_inhibit)
             update_cluster_values(cluster[1], depot, learning_rate, weight, winner, G, H)
-            #plot_network_m(cities, clusters,
-            #           name='C:/Users/Mateusz/PycharmProjects/som-tsp/tempdiagrams/after.png')
+
         for city in cities[['x', 'y']].values:
             winner_idx = select_closest_m(network, city, network_inhibit)
             network_inhibit[winner_idx] = 1
             winner = network[winner_idx]
             cluster_id = get_cluster_for_winner(clusters, winner)
             update_cluster_values(clusters[cluster_id], city, learning_rate, weight, winner, G, H)
-            # plot_network_m(cities, clusters, name='C:/Users/Mateusz/PycharmProjects/som-tsp/tempdiagrams/{:05d}.png'.format(temp))
             temp += 1
 
         G = G * (1-alfa)
@@ -73,14 +64,19 @@ def som(problem, iterations):
 
         plot_network_m(cities, clusters, name='C:/Users/Mateusz/PycharmProjects/som-tsp/tempdiagrams/{:05d}.png'.format(i))
 
-
-    else:
-        print('Completed {} iterations.'.format(iterations))
-
     plot_network_m(cities, clusters, name='C:/Users/Mateusz/PycharmProjects/som-tsp/tempdiagrams/final.png')
 
     route = get_route(cities, network)
-    get_route_m(cities, network, clusters)
+    cities = get_route_m(cities, network, clusters)
+    total_distance = 0
+    cities = cities.sort_values('winner')
+    problem = problem.reindex(cities.index)
+    problem['cluster'] = cities['cluster']
+    for cluster in problem.groupby('cluster'):
+        temp_distance = route_distance(cluster[1])
+        print('Distance: {} for salesman: {}'.format(temp_distance, cluster[1]['cluster'][0]))
+        total_distance += temp_distance
+    print('Total distance: {} '.format(total_distance))
     return route
 
 
@@ -125,8 +121,6 @@ def update_cluster_values(cluster, city, learning_rate, weight, winner, G, H):
         delta1 = neighborhood_function(winner, idx, cluster, G, H, M) * learning_rate * (city[1] - neuron[1]) + weight * (previous(cluster, idx)[1] - (2 * neuron[1]) + next_neuron(cluster, idx)[1])
         neuron[0] = neuron[0] + delta0
         neuron[1] = neuron[1] + delta1
-        # plot_network_m(cities, clusters,
-        #                name='C:/Users/Mateusz/PycharmProjects/som-tsp/tempdiagrams/10' + str(idx) + '.png')
 
 def neighborhood_function(winner, idx, cluster, G, H, M):
     # get winner idx
