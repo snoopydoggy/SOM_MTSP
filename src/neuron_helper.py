@@ -2,7 +2,7 @@ import numpy as np
 
 from plot import plot_route_m
 
-def select_closest_m(candidates, origin, network_inhibit):
+def select_closest_neuron(candidates, origin, network_inhibit):
     min = 100000
     id = -1
     for idx, neuron in enumerate(candidates):
@@ -37,7 +37,7 @@ def select_closest_for_c(network, c):
 
     return winner_idx
 
-def select_closest_for_cluster(candidates, origin):
+def select_closest_neuron_for_cluster(candidates, origin):
     min = 100000
     id = -1
     for idx, neuron in enumerate(candidates[1]):

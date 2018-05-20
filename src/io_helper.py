@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-def read_tsp(filename):
+def read_mtsp(filename):
     """
     Read a file in .tsp format into a pandas DataFrame
 

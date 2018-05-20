@@ -3,20 +3,18 @@ from sys import argv
 import numpy as np
 import math as math
 
-from io_helper import read_tsp, normalize
-from neuron_helper import euclidean_distance, route_distance, select_closest_m, select_closest_for_cluster, get_route_m
+from io_helper import read_mtsp, normalize
+from neuron_helper import euclidean_distance, route_distance, select_closest_neuron, select_closest_neuron_for_cluster, get_route_m
 from plot import plot_route, plot_network_m
 
 def main():
-    problem = read_tsp(argv[1])
-    som(problem, argv[2])
+    test_data = read_mtsp(argv[1])
+    solve_algorithm(test_data, argv[2])
 
-def som(problem, tsps_number):
-    #att48.tsp depot: city = 21
-    cities = problem.copy()
+def solve_algorithm(test_data, tsps_number):
+    cities = test_data.copy()
     cities[['x', 'y']] = normalize(cities[['x', 'y']])
     n = cities.shape[0] * 4
-    m = n
     G = 0.4 * n
     alfa = 0.03
     learning_rate = 0.6
@@ -27,31 +25,29 @@ def som(problem, tsps_number):
     network_size = nodes_per_cluster * k
     network = np.zeros(shape=(network_size, 2))
     network_inhibit = np.zeros((n,), dtype=bool)
+    clusters = generate_networks(n, network, k)
 
-    clusters = generateClusters_m(n, network, k)
-    temp = 0
     depot = cities.loc[cities['city'] == 'depot']
     depot = depot[['x', 'y']].values[0]
     for i in range(160):
 
         for cluster in clusters.items():
-            winner = select_closest_for_cluster(cluster, depot)
+            winner = select_closest_neuron_for_cluster(cluster, depot)
             update_network_inhibit_for_winner(winner, network, network_inhibit)
             update_cluster_values(cluster[1], depot, learning_rate, weight, winner, G, H)
 
         for city in cities[['x', 'y']].values:
-            winner_idx = select_closest_m(network, city, network_inhibit)
+            winner_idx = select_closest_neuron(network, city, network_inhibit)
             network_inhibit[winner_idx] = 1
             winner = network[winner_idx]
             cluster_id = get_cluster_for_winner(clusters, winner)
             update_cluster_values(clusters[cluster_id], city, learning_rate, weight, winner, G, H)
-            temp += 1
 
         G = G * (1-alfa)
         learning_rate = learning_rate * (1-alfa)
-        network_inhibit = np.zeros((m,), dtype=bool)
-
         weight = weight * 0.9
+
+        network_inhibit = np.zeros((n,), dtype=bool)
 
         plot_network_m(cities, clusters, name='C:/Users/Mateusz/PycharmProjects/som-tsp/diagrams/{:05d}.png'.format(i))
 
@@ -60,9 +56,9 @@ def som(problem, tsps_number):
     cities = get_route_m(cities, network, clusters)
     total_distance = 0
     cities = cities.sort_values('winner')
-    problem = problem.reindex(cities.index)
-    problem['cluster'] = cities['cluster']
-    for cluster in problem.groupby('cluster'):
+    test_data = test_data.reindex(cities.index)
+    test_data['cluster'] = cities['cluster']
+    for cluster in test_data.groupby('cluster'):
         temp_distance = route_distance(cluster[1])
         print('Distance: {} for salesman: {}'.format(temp_distance, cluster[1]['cluster'][0]))
         total_distance += temp_distance
@@ -70,7 +66,7 @@ def som(problem, tsps_number):
     return
 
 
-def generateClusters_m(n, network, k=1):
+def generate_networks(n, network, k=1):
     r = 0.25
     arc = 360/k
     currentArc = 0
