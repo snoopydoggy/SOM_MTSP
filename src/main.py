@@ -5,7 +5,7 @@ import math as math
 
 from io_helper import read_mtsp, normalize
 from neuron_helper import euclidean_distance, route_distance, select_closest_neuron, select_closest_neuron_for_cluster, \
-    get_route_m
+    get_route
 from plot import plot_route, plot_network_m
 
 
@@ -49,15 +49,15 @@ def solve_algorithm(test_data, tsps_number):
         G = G * (1 - alfa)
         learning_rate = learning_rate * (1 - alfa)
         weight = weight * 0.9
-
         network_inhibit = np.zeros((n,), dtype=bool)
 
         plot_network_m(cities, clusters, name='C:/Users/Mateusz/PycharmProjects/som-tsp/diagrams/{:05d}.png'.format(i))
 
     plot_network_m(cities, clusters, name='C:/Users/Mateusz/PycharmProjects/som-tsp/diagrams/final.png')
 
-    cities = get_route_m(cities, network, clusters)
     total_distance = 0
+
+    cities = get_route(cities, network, clusters)
     cities = cities.sort_values('winner')
     test_data = test_data.reindex(cities.index)
     test_data['cluster'] = cities['cluster']

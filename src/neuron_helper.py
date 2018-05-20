@@ -61,7 +61,7 @@ def get_cluster_for_winner(clusters, winner):
                 return key
 
 
-def get_route_m(cities, network, clusters):
+def get_route(cities, network, clusters):
    cities['winner'] = cities[['x', 'y']].apply(
         lambda c: select_closest_for_c(network, c),
         axis=1, raw=True)
