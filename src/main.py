@@ -56,7 +56,6 @@ def solve_algorithm(test_data, tsps_number):
     plot_network_m(cities, clusters, name='C:/Users/Mateusz/PycharmProjects/som-tsp/diagrams/final.png')
 
     total_distance = 0
-
     cities = get_route(cities, network, clusters)
     cities = cities.sort_values('winner')
     test_data = test_data.reindex(cities.index)
@@ -67,6 +66,7 @@ def solve_algorithm(test_data, tsps_number):
         print('Distance: {} for salesman: {}'.format(distance, cluster[1]['cluster'][0]))
         total_distance += distance
     print('Total distance: {} '.format(total_distance))
+
     return
 
 
