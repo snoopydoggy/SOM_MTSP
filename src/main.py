@@ -61,10 +61,11 @@ def solve_algorithm(test_data, tsps_number):
     cities = cities.sort_values('winner')
     test_data = test_data.reindex(cities.index)
     test_data['cluster'] = cities['cluster']
+
     for cluster in test_data.groupby('cluster'):
-        temp_distance = route_distance(cluster[1])
-        print('Distance: {} for salesman: {}'.format(temp_distance, cluster[1]['cluster'][0]))
-        total_distance += temp_distance
+        distance = route_distance(cluster[1])
+        print('Distance: {} for salesman: {}'.format(distance, cluster[1]['cluster'][0]))
+        total_distance += distance
     print('Total distance: {} '.format(total_distance))
     return
 
