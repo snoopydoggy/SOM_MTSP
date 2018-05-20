@@ -32,7 +32,7 @@ def som(problem, tsps_number):
     temp = 0
     depot = cities.loc[cities['city'] == 'depot']
     depot = depot[['x', 'y']].values[0]
-    for i in range(3):
+    for i in range(160):
 
         for cluster in clusters.items():
             winner = select_closest_for_cluster(cluster, depot)
