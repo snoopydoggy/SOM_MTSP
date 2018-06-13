@@ -6,10 +6,11 @@ import math as math
 from io_helper import read_mtsp, normalize
 from neuron_helper import euclidean_distance, route_distance, select_closest_neuron, select_closest_neuron_for_cluster, \
     get_route
-from plot import plot_route, plot_network_m
-
+from plot import plot_route, plot_network_m, plot_route_m
+from ellipse import ellipse
 
 def main():
+    # ellipse(0.7, 0.3, 200, 0.00001)
     test_data = read_mtsp(argv[1])
     solve_algorithm(test_data, argv[2])
 
@@ -32,7 +33,8 @@ def solve_algorithm(test_data, tsps_number):
 
     depot = cities.loc[cities['city'] == 'depot']
     depot = depot[['x', 'y']].values[0]
-    for i in range(160):
+    plot_network_m(cities, clusters, name='C:/Users/Mateusz/PycharmProjects/som-tsp/diagrams/start.png')
+    for i in range(1):
 
         for cluster in clusters.items():
             winner = select_closest_neuron_for_cluster(cluster, depot)
@@ -67,8 +69,69 @@ def solve_algorithm(test_data, tsps_number):
         total_distance += distance
     print('Total distance: {} '.format(total_distance))
 
+
+    dynamic_simulation(cities, network)
+
     return
 
+
+
+def dynamic_simulation(cities, network):
+    finished_routes = False
+    while ~finished_routes:
+        remove_random_unvisited_cities(cities)
+        add_random_cities(cities, network)
+        plot_route_m(cities)
+        finished_routes = simulation_finished_check(cities)
+
+
+
+def remove_random_unvisited_cities(cities):
+
+def add_random_cities(cities, network):
+
+def simulation_finished_check(cities):
+    return True
+
+def depot_start_reindex(cities):
+    global_index = 0
+    cities.loc[:, 'reindex'] = 'temp'
+    for cluster in cities.groupby('cluster'):
+        depot_index = 0
+        for index, row in cluster[1].iterrows():
+            if row['city'] == 'depot':
+                break
+            depot_index += 1
+        current_index = 0
+        for index, row in cluster[1].iterrows():
+            if current_index < depot_index:
+                row['reindex'] = depot_index + current_index + global_index
+            else:
+                row['reindex'] = current_index - depot_index + global_index
+            global_index += 1
+
+def generate_ellipse_networks(n, network):
+    a = 0.42
+    b = 0.12
+
+    clusters = {}
+    clusters[0] = []
+    clusters[1] = []
+    neurons_per_cluster = math.floor(n / 2)
+
+    points = ellipse(a, b, neurons_per_cluster, 0.0001)
+    points = points[:-1]
+    n_i = 0
+    for point in points:
+        network[n_i] = np.array([point[0] + 0.5, point[1] + 0.1])
+        clusters[0].append(network[n_i])
+        n_i = n_i + 1
+
+        network[n_i] = np.array([point[0] + 0.5, point[1] + 0.35])
+        clusters[1].append(network[n_i])
+        n_i = n_i + 1
+
+    return clusters
 
 def generate_networks(n, network, k=1):
     r = 0.25
