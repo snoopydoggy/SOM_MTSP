@@ -1,13 +1,13 @@
+import math as math
 from sys import argv
 
 import numpy as np
-import math as math
-
-from io_helper import read_mtsp, normalize
-from neuron_helper import euclidean_distance, route_distance, select_closest_neuron, select_closest_neuron_for_cluster, \
-    get_route
-from plot import plot_route, plot_network_m, plot_route_m
 from ellipse import ellipse
+from io_helper import read_mtsp, normalize
+from neuron_helper import route_distance, select_closest_neuron, select_closest_neuron_for_cluster, \
+    get_route
+from plot import plot_network_m, plot_route_m
+
 
 def main():
     # ellipse(0.7, 0.3, 200, 0.00001)
@@ -69,29 +69,67 @@ def solve_algorithm(test_data, tsps_number):
         total_distance += distance
     print('Total distance: {} '.format(total_distance))
 
+    plot_route_m(cities, 'C:/Users/Mateusz/PycharmProjects/som-tsp/diagrams/finalsim.png')
 
-    dynamic_simulation(cities, network)
+    cities['visited'] = False
+
+    dynamic_simulation(cities, network, network_inhibit)
 
     return
 
 
-
-def dynamic_simulation(cities, network):
+def dynamic_simulation(cities, network, network_inhibit):
     finished_routes = False
+    mark_depot_visited(cities)
     while ~finished_routes:
-        remove_random_unvisited_cities(cities)
+        cities = remove_random_unvisited_cities(cities)
         add_random_cities(cities, network)
+        move_salesmen(cities, network_inhibit)
         plot_route_m(cities)
         finished_routes = simulation_finished_check(cities)
 
 
+def mark_depot_visited(cities):
+    for cluster in cities.groupby('cluster'):
+        for index, row in cluster[1].iterrows():
+            if row['city'] == 'depot':
+                cities.set_value(index, 'visited', True)
+
+
+
+def move_salesmen(cities, network_inhibit):
+    for cluster in cities.groupby('cluster'):
+        tail = cluster[1].loc[:0]
+        tail = tail[:-1]
+        final = cluster[1].loc[0:].append(tail, ignore_index=True)
+        neuron_index = -1
+        for index, row in final.iterrows():
+            if row['visited'] == 'false]':
+                cities.set_value(index, 'visited', True)
+                neuron_index = row['winner']
+                break
+        if neuron_index > -1:
+            for i in range(neuron_index):
+                network_inhibit[i] = 1
+    return 0
+
 
 def remove_random_unvisited_cities(cities):
+    deleted_number = 1
+    if len(cities.query('visited==False')) > 1:
+        for i in range(deleted_number):
+            drop = np.random.choice(cities.query('visited==False').index, deleted_number, replace=False)
+            cities = cities.drop(drop)
+    return cities
+
 
 def add_random_cities(cities, network):
+    return 0
+
 
 def simulation_finished_check(cities):
-    return True
+    return False
+
 
 def depot_start_reindex(cities):
     global_index = 0
@@ -109,6 +147,7 @@ def depot_start_reindex(cities):
             else:
                 row['reindex'] = current_index - depot_index + global_index
             global_index += 1
+
 
 def generate_ellipse_networks(n, network):
     a = 0.42
@@ -132,6 +171,7 @@ def generate_ellipse_networks(n, network):
         n_i = n_i + 1
 
     return clusters
+
 
 def generate_networks(n, network, k=1):
     r = 0.25
@@ -173,11 +213,11 @@ def update_cluster_values(cluster, city, learning_rate, weight, winner, G, H):
     M = len(cluster)
     for idx, neuron in enumerate(cluster):
         delta0 = neighborhood_function(winner, idx, cluster, G, H, M) * learning_rate * (
-                    city[0] - neuron[0]) + weight * (
-                             previous(cluster, idx)[0] - (2 * neuron[0]) + next_neuron(cluster, idx)[0])
+                city[0] - neuron[0]) + weight * (
+                         previous(cluster, idx)[0] - (2 * neuron[0]) + next_neuron(cluster, idx)[0])
         delta1 = neighborhood_function(winner, idx, cluster, G, H, M) * learning_rate * (
-                    city[1] - neuron[1]) + weight * (
-                             previous(cluster, idx)[1] - (2 * neuron[1]) + next_neuron(cluster, idx)[1])
+                city[1] - neuron[1]) + weight * (
+                         previous(cluster, idx)[1] - (2 * neuron[1]) + next_neuron(cluster, idx)[1])
         neuron[0] = neuron[0] + delta0
         neuron[1] = neuron[1] + delta1
 
