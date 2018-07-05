@@ -66,3 +66,28 @@ def plot_route_m(cities, name='diagram.png'):
 
     plt.savefig(name, bbox_inches='tight', pad_inches=0, dpi=200)
     plt.close()
+
+
+def plot_route_sim(cities, name):
+    mpl.rcParams['agg.path.chunksize'] = 10000
+    colors = ['#0063ba', '#ccff33', '#ff6699', '#660033', '#996633', '#99ff33', '#00ffff', '#006600']
+    i = 0
+    fig = plt.figure(figsize=(5, 5), frameon=False)
+    axis = fig.add_axes([0, 0, 1, 1])
+
+    axis.set_aspect('equal', adjustable='datalim')
+    plt.axis('off')
+    depot = cities.loc[cities['city'] == 'depot']
+    axis.scatter(cities['x'], cities['y'], color='red', s=4)
+    axis.scatter(depot['x'], depot['y'], color='black', s=8)
+
+    for cluster in cities.groupby('cluster'):
+        sorted = cluster[1].sort_values('winner')
+        axis.plot(sorted['x'], sorted['y'], color=colors[i], linewidth=1)
+        axis.plot([sorted.iloc[-1]['x'], sorted.iloc[0]['x']], [sorted.iloc[-1]['y'], sorted.iloc[0]['y']], color=colors[i], linewidth=1)
+        unvisited = sorted.query('visited==True')
+        axis.plot(unvisited['x'], unvisited['y'], color='black')
+        i += 1
+
+    plt.savefig(name, bbox_inches='tight', pad_inches=0, dpi=200)
+    plt.close()

@@ -1,4 +1,6 @@
 import math as math
+import random
+import pandas as pd
 from sys import argv
 
 import numpy as np
@@ -6,7 +8,7 @@ from ellipse import ellipse
 from io_helper import read_mtsp, normalize
 from neuron_helper import route_distance, select_closest_neuron, select_closest_neuron_for_cluster, \
     get_route
-from plot import plot_network_m, plot_route_m
+from plot import plot_network_m, plot_route_m, plot_route_sim
 
 
 def main():
@@ -34,7 +36,7 @@ def solve_algorithm(test_data, tsps_number):
     depot = cities.loc[cities['city'] == 'depot']
     depot = depot[['x', 'y']].values[0]
     plot_network_m(cities, clusters, name='C:/Users/Mateusz/PycharmProjects/som-tsp/diagrams/start.png')
-    for i in range(1):
+    for i in range(160):
 
         for cluster in clusters.items():
             winner = select_closest_neuron_for_cluster(cluster, depot)
@@ -73,20 +75,24 @@ def solve_algorithm(test_data, tsps_number):
 
     cities['visited'] = False
 
-    dynamic_simulation(cities, network, network_inhibit)
+    dynamic_simulation(cities, network, network_inhibit, clusters, nodes_per_cluster)
 
     return
 
 
-def dynamic_simulation(cities, network, network_inhibit):
+def dynamic_simulation(cities, network, network_inhibit, clusters, nodes_per_cluster):
     finished_routes = False
     mark_depot_visited(cities)
-    while ~finished_routes:
+    index = 0
+    while finished_routes is not True:
         cities = remove_random_unvisited_cities(cities)
-        add_random_cities(cities, network)
-        move_salesmen(cities, network_inhibit)
-        plot_route_m(cities)
+        cities = add_random_cities(cities, network, network_inhibit, clusters)
+        move_salesmen(cities, network_inhibit, nodes_per_cluster)
+        plot_route_sim(cities, 'C:/Users/Mateusz/PycharmProjects/som-tsp/diagrams/sim{:05}.png'.format(index))
         finished_routes = simulation_finished_check(cities)
+        if index == 5:
+            print(len(cities))
+        index += 1
 
 
 def mark_depot_visited(cities):
@@ -97,38 +103,46 @@ def mark_depot_visited(cities):
 
 
 
-def move_salesmen(cities, network_inhibit):
+def move_salesmen(cities, network_inhibit, nodes_per_cluster):
     for cluster in cities.groupby('cluster'):
         tail = cluster[1].loc[:0]
         tail = tail[:-1]
-        final = cluster[1].loc[0:].append(tail, ignore_index=True)
+        final = cluster[1].loc[0:].append(tail, ignore_index=False)
         neuron_index = -1
+        cluster_idx = -1
         for index, row in final.iterrows():
-            if row['visited'] == 'false]':
+            cluster_idx = row['cluster']
+            if row['visited'] == False:
                 cities.set_value(index, 'visited', True)
                 neuron_index = row['winner']
                 break
         if neuron_index > -1:
-            for i in range(neuron_index):
+            for i in range(nodes_per_cluster * cluster_idx, neuron_index):
                 network_inhibit[i] = 1
     return 0
 
 
 def remove_random_unvisited_cities(cities):
-    deleted_number = 1
     if len(cities.query('visited==False')) > 1:
-        for i in range(deleted_number):
-            drop = np.random.choice(cities.query('visited==False').index, deleted_number, replace=False)
-            cities = cities.drop(drop)
+            drop = np.random.choice(cities.query('visited==False').index, 1, replace=False)
+            return cities.drop(drop)
     return cities
 
 
-def add_random_cities(cities, network):
-    return 0
+def add_random_cities(cities, network, network_inhibit, clusters):
+    x = random.uniform(0, 1)
+    y = random.uniform(0, 1)
+    winner_idx = select_closest_neuron(network, [x, y], network_inhibit)
+    winner = network[winner_idx]
+    cluster_id = get_cluster_for_winner(clusters, winner)
+    df = pd.DataFrame({'city': -1, 'y': y, 'x': x, 'winner': winner_idx, 'cluster': cluster_id, 'visited': False}, index=[100])
+    return cities.append(df).sort_values('winner')
 
 
 def simulation_finished_check(cities):
-    return False
+    if len(cities.query('visited==False')) > 3:
+        return False
+    return True
 
 
 def depot_start_reindex(cities):
