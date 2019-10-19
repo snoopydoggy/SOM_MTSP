@@ -65,5 +65,4 @@ def ellipse(a, b, steps, limit):
 
         doContinue = maxRatio > limit
 
-
     return points

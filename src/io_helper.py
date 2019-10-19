@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 
+
 def read_mtsp(filename):
     with open(filename) as f:
         node_coord_start = None
@@ -15,7 +16,7 @@ def read_mtsp(filename):
                 dimension = int(line.split()[-1])
             if line.startswith('NODE_COORD_SECTION'):
                 node_coord_start = i
-            i = i+1
+            i = i + 1
 
         print('Problem with {} cities read.'.format(dimension))
 
@@ -35,6 +36,7 @@ def read_mtsp(filename):
         # cities.set_index('city', inplace=True)
 
         return cities
+
 
 def normalize(points):
     """

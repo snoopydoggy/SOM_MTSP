@@ -13,6 +13,9 @@ from plot import plot_network_m, plot_route_m, plot_route_sim
 
 def main():
     # ellipse(0.7, 0.3, 200, 0.00001)
+    if len(argv) != 3:
+        print("Correct use: python src/main.py <filename>.tsp <tsps_num>")
+        return -1
     test_data = read_mtsp(argv[1])
     solve_algorithm(test_data, argv[2])
 
@@ -35,7 +38,7 @@ def solve_algorithm(test_data, tsps_number):
 
     depot = cities.loc[cities['city'] == 'depot']
     depot = depot[['x', 'y']].values[0]
-    plot_network_m(cities, clusters, name='C:/Users/Mateusz/PycharmProjects/som-tsp/diagrams/start.png')
+    plot_network_m(cities, clusters, name='diagrams/start.png')
     for i in range(160):
 
         for cluster in clusters.items():
@@ -55,9 +58,9 @@ def solve_algorithm(test_data, tsps_number):
         weight = weight * 0.9
         network_inhibit = np.zeros((n,), dtype=bool)
 
-        plot_network_m(cities, clusters, name='C:/Users/Mateusz/PycharmProjects/som-tsp/diagrams/{:05d}.png'.format(i))
+        plot_network_m(cities, clusters, name='diagrams/{:05d}.png'.format(i))
 
-    plot_network_m(cities, clusters, name='C:/Users/Mateusz/PycharmProjects/som-tsp/diagrams/final.png')
+    plot_network_m(cities, clusters, name='diagrams/final.png')
 
     total_distance = 0
     cities = get_route(cities, network, clusters)
@@ -71,7 +74,7 @@ def solve_algorithm(test_data, tsps_number):
         total_distance += distance
     print('Total distance: {} '.format(total_distance))
 
-    plot_route_m(cities, 'C:/Users/Mateusz/PycharmProjects/som-tsp/diagrams/finalsim.png')
+    plot_route_m(cities, 'diagrams/route.png')
 
     cities['visited'] = False
 
@@ -88,7 +91,7 @@ def dynamic_simulation(cities, network, network_inhibit, clusters, nodes_per_clu
         cities = remove_random_unvisited_cities(cities)
         cities = add_random_cities(cities, network, network_inhibit, clusters)
         move_salesmen(cities, network_inhibit, nodes_per_cluster)
-        plot_route_sim(cities, 'C:/Users/Mateusz/PycharmProjects/som-tsp/diagrams/sim{:05}.png'.format(index))
+        plot_route_sim(cities, 'diagrams/sim{:05}.png'.format(index))
         finished_routes = simulation_finished_check(cities)
         if index == 5:
             print(len(cities))
@@ -102,7 +105,6 @@ def mark_depot_visited(cities):
                 cities.set_value(index, 'visited', True)
 
 
-
 def move_salesmen(cities, network_inhibit, nodes_per_cluster):
     for cluster in cities.groupby('cluster'):
         tail = cluster[1].loc[:0]
@@ -112,7 +114,8 @@ def move_salesmen(cities, network_inhibit, nodes_per_cluster):
         cluster_idx = -1
         for index, row in final.iterrows():
             cluster_idx = row['cluster']
-            if row['visited'] == False:
+            # if row['visited'] == False:
+            if not row['visited']:
                 cities.set_value(index, 'visited', True)
                 neuron_index = row['winner']
                 break
@@ -124,8 +127,8 @@ def move_salesmen(cities, network_inhibit, nodes_per_cluster):
 
 def remove_random_unvisited_cities(cities):
     if len(cities.query('visited==False')) > 1:
-            drop = np.random.choice(cities.query('visited==False').index, 1, replace=False)
-            return cities.drop(drop)
+        drop = np.random.choice(cities.query('visited==False').index, 1, replace=False)
+        return cities.drop(drop)
     return cities
 
 
@@ -135,7 +138,8 @@ def add_random_cities(cities, network, network_inhibit, clusters):
     winner_idx = select_closest_neuron(network, [x, y], network_inhibit)
     winner = network[winner_idx]
     cluster_id = get_cluster_for_winner(clusters, winner)
-    df = pd.DataFrame({'city': -1, 'y': y, 'x': x, 'winner': winner_idx, 'cluster': cluster_id, 'visited': False}, index=[100])
+    df = pd.DataFrame({'city': -1, 'y': y, 'x': x, 'winner': winner_idx, 'cluster': cluster_id, 'visited': False},
+                      index=[100])
     return cities.append(df).sort_values('winner')
 
 
@@ -167,9 +171,10 @@ def generate_ellipse_networks(n, network):
     a = 0.42
     b = 0.12
 
-    clusters = {}
-    clusters[0] = []
-    clusters[1] = []
+    # clusters = {}
+    # clusters[0] = []
+    # clusters[1] = []
+    clusters = {0: [], 1: []}
     neurons_per_cluster = math.floor(n / 2)
 
     points = ellipse(a, b, neurons_per_cluster, 0.0001)
@@ -247,7 +252,7 @@ def neighborhood_function(winner, idx, cluster, G, H, M):
 
     distance = temp if temp < M - temp else M - temp
 
-    if (distance > H):
+    if distance > H:
         return 0
 
     return math.exp((-distance * distance) / (G * G))
