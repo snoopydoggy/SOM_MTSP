@@ -84,6 +84,7 @@ def get_route(cities, network, clusters):
     for i in range(clusters_number):
         if depot_skip == i:
             depot['winner'] = select_closest_in_cluster(clusters[i], depot[['x', 'y']], network)
+            # depot['winner'] = select_closest_in_cluster(clusters[i], depot[['x', 'y']].copy(), network)
             depot.iloc[0, depot.columns.get_loc('cluster')] = i
             continue
         temp = depot.copy(deep=False)

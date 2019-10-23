@@ -25,8 +25,8 @@ def solve_algorithm(test_data, tsps_number):
     cities[['x', 'y']] = normalize(cities[['x', 'y']])
     n = cities.shape[0] * 4
     G = 0.4 * n
-    alfa = 0.03
-    learning_rate = 0.6
+    alfa = 0.03  # 更新率
+    learning_rate = 0.6  # 学习率
     weight = 0.3
     k = int(tsps_number)
     nodes_per_cluster = math.floor(n / k)
@@ -228,6 +228,7 @@ def get_cluster_for_winner(clusters, winner):
                 return key
 
 
+# 权值更新
 def update_cluster_values(cluster, city, learning_rate, weight, winner, G, H):
     M = len(cluster)
     for idx, neuron in enumerate(cluster):
@@ -241,6 +242,7 @@ def update_cluster_values(cluster, city, learning_rate, weight, winner, G, H):
         neuron[1] = neuron[1] + delta1
 
 
+# 邻域更新函数
 def neighborhood_function(winner, idx, cluster, G, H, M):
     # get winner idx
     winner_id = 0
